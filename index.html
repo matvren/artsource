@@ -857,7 +857,7 @@
       <input type="text" id="signupUser" onkeydown="if(event.key==='Enter')authSignup()" />
       <label>Password</label>
       <input type="password" id="signupPass" onkeydown="if(event.key==='Enter')authSignup()" />
-      <div style="font-size:11px;color:var(--muted);margin:-8px 0 14px;line-height:1.4">Min 8 chars, uppercase, lowercase, number, special char</div>
+      <div style="font-size:11px;color:var(--muted);margin:-8px 0 14px;line-height:1.4">Min 8 characters and one uppercase letter</div>
       <button class="auth-submit" onclick="authSignup()">Create Account</button>
       <div class="auth-error" id="signupError"></div>
       <div class="auth-success" id="signupSuccess"></div>
@@ -1026,9 +1026,6 @@
     if (!user || !pass) { err.textContent = 'Fill in all fields'; err.style.display = 'block'; return; }
     if (pass.length < 8) { err.textContent = 'Password must be at least 8 characters'; err.style.display = 'block'; return; }
     if (!/[A-Z]/.test(pass)) { err.textContent = 'Password needs an uppercase letter'; err.style.display = 'block'; return; }
-    if (!/[a-z]/.test(pass)) { err.textContent = 'Password needs a lowercase letter'; err.style.display = 'block'; return; }
-    if (!/\d/.test(pass)) { err.textContent = 'Password needs a number'; err.style.display = 'block'; return; }
-    if (!/[^A-Za-z0-9]/.test(pass)) { err.textContent = 'Password needs a special character'; err.style.display = 'block'; return; }
     const accounts = getAccounts();
     if (accounts[user]) { err.textContent = 'Username already exists'; err.style.display = 'block'; return; }
     accounts[user] = hash(pass);
