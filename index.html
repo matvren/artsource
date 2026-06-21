@@ -844,24 +844,24 @@
       <button class="auth-tab active" onclick="switchAuthTab('login', this)">Sign In</button>
       <button class="auth-tab" onclick="switchAuthTab('signup', this)">Sign Up</button>
     </div>
-    <form class="auth-form active" id="loginForm" action="#" onsubmit="authLogin();return false">
+    <div class="auth-form active" id="loginForm">
       <label>Username</label>
-      <input type="text" id="loginUser" name="username" autocomplete="username" />
+      <input type="text" id="loginUser" onkeydown="if(event.key==='Enter')authLogin()" />
       <label>Password</label>
-      <input type="password" id="loginPass" name="password" autocomplete="current-password" />
-      <button class="auth-submit" type="submit">Sign In</button>
+      <input type="password" id="loginPass" onkeydown="if(event.key==='Enter')authLogin()" />
+      <button class="auth-submit" onclick="authLogin()">Sign In</button>
       <div class="auth-error" id="loginError"></div>
-    </form>
-    <form class="auth-form" id="signupForm" action="#" onsubmit="authSignup();return false">
+    </div>
+    <div class="auth-form" id="signupForm">
       <label>Username</label>
-      <input type="text" id="signupUser" name="username" autocomplete="username" />
+      <input type="text" id="signupUser" onkeydown="if(event.key==='Enter')authSignup()" />
       <label>Password</label>
-      <input type="password" id="signupPass" name="new-password" autocomplete="new-password" />
+      <input type="password" id="signupPass" onkeydown="if(event.key==='Enter')authSignup()" />
       <div style="font-size:11px;color:var(--muted);margin:-8px 0 14px;line-height:1.4">Min 8 chars, uppercase, lowercase, number, special char</div>
-      <button class="auth-submit" type="submit">Create Account</button>
+      <button class="auth-submit" onclick="authSignup()">Create Account</button>
       <div class="auth-error" id="signupError"></div>
       <div class="auth-success" id="signupSuccess"></div>
-    </form>
+    </div>
   </div>
 </div>
 
