@@ -281,7 +281,7 @@
     color: var(--muted);
   }
 
-  .search-wrap input {
+  .search-wrap input, .search-wrap input[type="search"] {
     width: 100%;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -741,6 +741,10 @@
 </style>
 </head>
 <body>
+<form action="#" style="position:absolute;left:-9999px" aria-hidden="true">
+  <input type="text" name="fakeuser" autocomplete="username" tabindex="-1" />
+  <input type="password" name="fakepass" autocomplete="current-password" tabindex="-1" />
+</form>
 
 <div id="scrollbar"><div id="scrollbar-track"></div><div id="scrollbar-thumb"></div></div>
 
@@ -770,7 +774,7 @@
     <p>Connect with vendors via WeChat or WhatsApp</p>
     <div class="search-wrap">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="4.5"/><path d="M9.5 9.5L13 13"/></svg>
-      <input type="text" id="search" name="search" autocomplete="off" placeholder="Search vendors…" oninput="handleSearch()" />
+      <input type="search" id="search" placeholder="Search vendors…" oninput="handleSearch()" autocomplete="off" />
     </div>
   </div>
 
