@@ -14,8 +14,14 @@ export function getToken() {
 export function setToken(t) { localStorage.setItem('artsource-github-token', t); }
 export function hasToken() { return !!getToken(); }
 
-// --- GitHub API ---
+// --- Fetch: try API first, fall back to GitHub raw ---
 async function fetchRaw() {
+  // Try Vercel API (reads from Vercel Blob)
+  try {
+    const res = await fetch('/api/sync');
+    if (res.ok) return await res.json();
+  } catch {}
+  // Fall back to GitHub raw
   const url = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${FILE_PATH}`;
   const res = await fetch(url, { cache: 'no-cache' });
   if (!res.ok) throw new Error('GitHub fetch failed');
