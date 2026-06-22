@@ -155,7 +155,33 @@ export default function Home() {
           <ContactSection />
         </div>
 
-        <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-center mt-24 pb-8" style={{ color: 'rgba(255,255,255,0.15)' }}>
+        <div className="mt-24 mb-12 text-center">
+          <div className="flex items-center justify-center gap-8 mb-5">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3c-1.5 0-3 2-3 5s1.5 5 3 5 3-2 3-5-1.5-5-3-5z"/>
+              <path d="M8 13h8"/>
+              <path d="M6 17c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v2H6v-2z"/>
+              <path d="M18 21H6"/>
+            </svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="8"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)', letterSpacing: '0.03em' }}>
+            To purchase any item for cheap contact{' '}
+            <a href="https://wa.me/16472722058" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 transition-colors" style={{ color: 'rgba(255,255,255,0.45)' }} onMouseEnter={e => e.currentTarget.style.color = '#f5f5f5'} onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}>artsources</a>
+            {' '}or{' '}
+            <a href="https://wa.me/35795653345" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 transition-colors" style={{ color: 'rgba(255,255,255,0.45)' }} onMouseEnter={e => e.currentTarget.style.color = '#f5f5f5'} onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}>racibuls</a>
+          </p>
+        </div>
+
+        <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-center pb-8" style={{ color: 'rgba(255,255,255,0.15)' }}>
           &copy; racibuls &amp; artsources
         </p>
       </main>
