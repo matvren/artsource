@@ -42,7 +42,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
     };
 
     resize();
-    ctx.fillStyle = '#080808';
+    ctx.fillStyle = '#040404';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     window.addEventListener('resize', resize);
 
@@ -53,7 +53,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
       const h = canvas.height;
 
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = '#080808';
+      ctx.fillStyle = '#040404';
       ctx.fillRect(0, 0, w, h);
 
       const disp = pts.map((row, ri) =>
@@ -136,15 +136,15 @@ export default function HeroSection({ searchQuery, onSearch }) {
       ctx.fillRect(0, 0, w, h);
 
       const topFade = ctx.createLinearGradient(0, 0, 0, h * 0.12);
-      topFade.addColorStop(0, 'rgba(8,8,8,1)');
-      topFade.addColorStop(1, 'rgba(8,8,8,0)');
+      topFade.addColorStop(0, 'rgba(4,4,4,1)');
+      topFade.addColorStop(1, 'rgba(4,4,4,0)');
       ctx.fillStyle = topFade;
       ctx.fillRect(0, 0, w, h * 0.12);
 
       const bottomFade = ctx.createLinearGradient(0, h * 0.6, 0, h);
-      bottomFade.addColorStop(0, 'rgba(8,8,8,0)');
-      bottomFade.addColorStop(0.85, 'rgba(8,8,8,0.4)');
-      bottomFade.addColorStop(1, 'rgba(8,8,8,1)');
+      bottomFade.addColorStop(0, 'rgba(4,4,4,0)');
+      bottomFade.addColorStop(0.85, 'rgba(4,4,4,0.4)');
+      bottomFade.addColorStop(1, 'rgba(4,4,4,1)');
       ctx.fillStyle = bottomFade;
       ctx.fillRect(0, 0, w, h);
 
@@ -171,11 +171,15 @@ export default function HeroSection({ searchQuery, onSearch }) {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden" style={{ background: '#080808' }}>
+    <div ref={containerRef} className="relative flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden" style={{ background: '#040404' }}>
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
-        style={{ display: 'block', background: '#080808' }}
+        style={{
+          display: 'block',
+          opacity: 0,
+          animation: 'bgFadeIn 1.8s ease 0.15s forwards',
+        }}
       />
 
       <div
@@ -279,6 +283,10 @@ export default function HeroSection({ searchQuery, onSearch }) {
         @keyframes heroFadeUp {
           from { opacity: 0; transform: translateY(22px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bgFadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
       `}</style>
     </div>

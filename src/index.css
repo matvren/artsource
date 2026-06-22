@@ -53,7 +53,7 @@
 
   body {
     @apply text-foreground font-body;
-    background: #080808;
+    background: #040404;
   }
 
   html {
