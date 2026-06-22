@@ -175,7 +175,12 @@ export default function HeroSection({ searchQuery, onSearch }) {
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
-        style={{ display: 'block', background: '#020202' }}
+        style={{
+          display: 'block',
+          background: '#020202',
+          opacity: 0,
+          animation: 'bgFadeIn 0.6s ease 0.1s forwards',
+        }}
       />
 
       <div
@@ -279,6 +284,10 @@ export default function HeroSection({ searchQuery, onSearch }) {
         @keyframes heroFadeUp {
           from { opacity: 0; transform: translateY(22px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bgFadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
       `}</style>
     </div>
