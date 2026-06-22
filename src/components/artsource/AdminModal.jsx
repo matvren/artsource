@@ -22,6 +22,12 @@ export default function AdminModal({ currentUser, onClose, onSync }) {
     return () => document.removeEventListener('keydown', handler);
   }, []);
 
+  // Refresh data from localStorage when switching tabs
+  useEffect(() => {
+    setAccounts(getAccounts());
+    setCustomVendors(lsGetCustom());
+  }, [tab]);
+
   const handleClose = () => {
     setVisible(false);
     setTimeout(onClose, 300);
