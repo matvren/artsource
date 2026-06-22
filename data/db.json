@@ -1,6 +1,12 @@
 {
-  "accounts": {},
-  "favorites": {},
+  "accounts": {
+    "racibuls": "hi0392j",
+    "artsources": "hoskyjv"
+  },
+  "favorites": {
+    "artsources": [],
+    "racibuls": []
+  },
   "customVendors": {
     "wechat": [],
     "whatsapp": [],
