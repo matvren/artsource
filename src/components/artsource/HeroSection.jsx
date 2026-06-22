@@ -175,7 +175,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
-        style={{ display: 'block' }}
+        style={{ display: 'block', background: '#080808' }}
       />
 
       <div
