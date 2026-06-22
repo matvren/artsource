@@ -68,13 +68,35 @@ async function pushToGitHubRaw(data) {
   }
 }
 
+// --- Deleted accounts (prevents re-import from GitHub when push fails) ---
+function getDeletedAccounts() {
+  return JSON.parse(localStorage.getItem('artsource-deleted-accounts') || '[]');
+}
+function addDeletedAccount(username) {
+  const list = getDeletedAccounts();
+  if (!list.includes(username)) {
+    list.push(username);
+    localStorage.setItem('artsource-deleted-accounts', JSON.stringify(list));
+  }
+}
+function clearDeletedAccounts() {
+  localStorage.removeItem('artsource-deleted-accounts');
+}
+
 // --- Merge: pull GitHub data into localStorage ---
 export async function syncFromGitHub() {
   let remote;
   try { remote = await fetchRaw(); } catch { return false; }
-  // Merge accounts
+  // Merge accounts (exclude accounts deleted locally)
+  const deleted = getDeletedAccounts();
   const localAccounts = JSON.parse(localStorage.getItem(LS_ACCOUNTS) || '{}');
-  const mergedAccounts = { ...localAccounts, ...(remote.accounts || {}) };
+  const remoteFiltered = {};
+  if (remote.accounts) {
+    for (const [user, pw] of Object.entries(remote.accounts)) {
+      if (!deleted.includes(user)) remoteFiltered[user] = pw;
+    }
+  }
+  const mergedAccounts = { ...localAccounts, ...remoteFiltered };
   localStorage.setItem(LS_ACCOUNTS, JSON.stringify(mergedAccounts));
   // Merge favorites
   if (remote.favorites) {
@@ -106,7 +128,6 @@ export async function syncFromGitHub() {
 
 // --- Push: write localStorage data to GitHub ---
 async function pushToGitHubAll() {
-  if (!hasToken()) return;
   const data = {
     accounts: JSON.parse(localStorage.getItem(LS_ACCOUNTS) || '{}'),
     favorites: {},
@@ -119,7 +140,12 @@ async function pushToGitHubAll() {
       data.favorites[user] = JSON.parse(localStorage.getItem(key) || '[]');
     }
   }
-  await pushToGitHubRaw(data);
+  try {
+    await pushToGitHubRaw(data);
+    clearDeletedAccounts();
+  } catch {
+    // push failed but local delete already tracked — data won't re-import
+  }
 }
 
 // --- Accounts ---
@@ -143,6 +169,7 @@ export function deleteAccount(username) {
   delete accounts[username];
   localStorage.setItem(LS_ACCOUNTS, JSON.stringify(accounts));
   localStorage.removeItem('artsource-favs-' + username);
+  addDeletedAccount(username);
   pushToGitHubAll().catch(() => {});
 }
 
