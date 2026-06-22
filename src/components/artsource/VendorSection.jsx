@@ -13,7 +13,7 @@ export default function VendorSection({
   title, vendors, type, currentUser, favorites,
   onToggleFav, onOpenVendor, onOpenAuth
 }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const gridRef = useRef(null);
   const [height, setHeight] = useState('auto');
 
