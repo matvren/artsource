@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/artsource/Navbar';
 import HeroSection from '@/components/artsource/HeroSection';
 import VendorSection from '@/components/artsource/VendorSection';
@@ -8,6 +8,18 @@ import AuthModal from '@/components/artsource/AuthModal';
 import { vendorData } from '@/lib/vendorData';
 
 export default function Home() {
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  const handleScroll = useCallback(() => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    setScrollProgress(docHeight > 0 ? scrollTop / docHeight : 0);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
   const [currentUser, setCurrentUser] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -153,6 +165,21 @@ export default function Home() {
           onLogin={handleLogin}
         />
       )}
+
+      {/* Custom scrollbar indicator */}
+      <div
+        className="fixed right-0 top-0 bottom-0 w-[3px] pointer-events-none z-50"
+        style={{ background: 'rgba(255,255,255,0.03)' }}
+      >
+        <div
+          className="w-full transition-all duration-75"
+          style={{
+            height: `${Math.max(scrollProgress * 100, 0)}%`,
+            background: 'rgba(255,255,255,0.12)',
+            borderRadius: '0 2px 2px 0',
+          }}
+        />
+      </div>
     </div>
   );
 }

@@ -58,6 +58,10 @@
   html {
     scroll-behavior: smooth;
   }
+
+  /* Hide native scrollbar */
+  ::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
 }
 
 @layer utilities {
