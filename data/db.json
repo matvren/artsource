@@ -1,13 +1,13 @@
 {
   "accounts": {
     "racibuls": "hi0392j",
-    "leon1": "hmmaqdh",
     "artsources": "hoskyjv"
   },
   "deletedAccounts": [
-    "artsources"
+    "leon1"
   ],
   "favorites": {
+    "artsources": [],
     "racibuls": []
   },
   "customVendors": {
