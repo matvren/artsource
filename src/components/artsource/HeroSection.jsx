@@ -193,6 +193,8 @@ export default function HeroSection({ searchQuery, onSearch }) {
         }}
       />
 
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.5)' }} />
+
       <div className="relative z-10 flex flex-col items-center text-center">
         <p
           className="text-[10px] font-medium tracking-[0.4em] uppercase mb-8"
