@@ -20,25 +20,26 @@ export default function Home() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [favorites, setFavorites] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedVendor, setSelectedVendor] = useState(null);
-  const [showAuth, setShowAuth] = useState(false);
-
-  useEffect(() => {
+  const [currentUser, setCurrentUser] = useState(() => {
+    const token = localStorage.getItem('artsource-token');
+    if (token) {
+      const sessions = JSON.parse(localStorage.getItem('artsource-sessions') || '{}');
+      return sessions[token] || null;
+    }
+    return null;
+  });
+  const [favorites, setFavorites] = useState(() => {
     const token = localStorage.getItem('artsource-token');
     if (token) {
       const sessions = JSON.parse(localStorage.getItem('artsource-sessions') || '{}');
       const user = sessions[token];
-      if (user) {
-        setCurrentUser(user);
-        setFavorites(JSON.parse(localStorage.getItem('artsource-favs-' + user) || '[]'));
-      } else {
-        localStorage.removeItem('artsource-token');
-      }
+      return user ? JSON.parse(localStorage.getItem('artsource-favs-' + user) || '[]') : [];
     }
-  }, []);
+    return [];
+  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [showAuth, setShowAuth] = useState(false);
 
   const handleLogin = (user, favs) => {
     setCurrentUser(user);
