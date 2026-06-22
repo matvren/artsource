@@ -9,7 +9,7 @@ import ResetPasswordModal from '@/components/artsource/ResetPasswordModal';
 import AdminModal from '@/components/artsource/AdminModal';
 import DeleteAccountModal from '@/components/artsource/DeleteAccountModal';
 import { vendorData } from '@/lib/vendorData';
-import { getFavorites as lsGetFavs, getCustomVendors as lsGetCustom, setFavorites as lsSetFavs } from '@/lib/githubDB';
+import { getFavorites as lsGetFavs, getCustomVendors as lsGetCustom, setFavorites as lsSetFavs, syncFromGitHub, hasToken } from '@/lib/githubDB';
 
 export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -34,6 +34,16 @@ export default function Home() {
   });
   const [favorites, setFavorites] = useState(() => currentUser ? lsGetFavs(currentUser) : []);
   const [customVendors, setCustomVendors] = useState(() => lsGetCustom());
+  const [syncKey, setSyncKey] = useState(0);
+
+  // Sync from GitHub on mount and when syncKey changes
+  useEffect(() => {
+    if (!hasToken()) return;
+    syncFromGitHub().then(() => {
+      if (currentUser) setFavorites(lsGetFavs(currentUser));
+      setCustomVendors(lsGetCustom());
+    }).catch(() => {});
+  }, [currentUser, syncKey]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
@@ -216,6 +226,7 @@ export default function Home() {
       {showAdmin && (
         <AdminModal
           onClose={() => setShowAdmin(false)}
+          onSync={() => setSyncKey(k => k + 1)}
         />
       )}
 
