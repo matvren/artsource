@@ -87,7 +87,12 @@ function clearDeletedAccounts() {
 export async function syncFromGitHub() {
   let remote;
   try { remote = await fetchRaw(); } catch { return false; }
-  // Merge accounts (exclude accounts deleted locally)
+  // Merge deleted accounts from remote (cross-device sync)
+  const remoteDeleted = remote.deletedAccounts || [];
+  const localDeleted = getDeletedAccounts();
+  const mergedDeleted = [...new Set([...localDeleted, ...remoteDeleted])];
+  localStorage.setItem('artsource-deleted-accounts', JSON.stringify(mergedDeleted));
+  // Merge accounts (exclude accounts deleted locally or on another device)
   const deleted = getDeletedAccounts();
   const localAccounts = JSON.parse(localStorage.getItem(LS_ACCOUNTS) || '{}');
   const remoteFiltered = {};
@@ -130,6 +135,7 @@ export async function syncFromGitHub() {
 async function pushToGitHubAll() {
   const data = {
     accounts: JSON.parse(localStorage.getItem(LS_ACCOUNTS) || '{}'),
+    deletedAccounts: getDeletedAccounts(),
     favorites: {},
     customVendors: JSON.parse(localStorage.getItem(LS_VENDORS) || '{"wechat":[],"whatsapp":[],"freight":[],"paid":[]}'),
   };
@@ -144,7 +150,7 @@ async function pushToGitHubAll() {
     await pushToGitHubRaw(data);
     clearDeletedAccounts();
   } catch {
-    // push failed but local delete already tracked — data won't re-import
+    // push failed — local delete stays tracked, won't re-import on this device
   }
 }
 
