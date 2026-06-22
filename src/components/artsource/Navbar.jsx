@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { LogOut, Settings, Shield, ChevronDown } from 'lucide-react';
+import { LogOut, Settings, Shield, ChevronDown, Trash2 } from 'lucide-react';
 import { ADMIN_USERS } from '@/lib/vendorData';
 
-export default function Navbar({ currentUser, onOpenAuth, onLogout, onOpenAdmin, onOpenResetPassword }) {
+export default function Navbar({ currentUser, onOpenAuth, onLogout, onOpenAdmin, onOpenResetPassword, onOpenDeleteAccount }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -86,6 +86,16 @@ export default function Navbar({ currentUser, onOpenAuth, onLogout, onOpenAdmin,
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out
+                </button>
+                <button
+                  onClick={() => { setOpen(false); onOpenDeleteAccount(); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left"
+                  style={{ color: 'rgba(248,113,113,0.5)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.08)'; e.currentTarget.style.color = '#f87171'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(248,113,113,0.5)'; }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Account
                 </button>
               </div>
             )}

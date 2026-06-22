@@ -1,10 +1,22 @@
 import { useState, useEffect } from 'react';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, Plus } from 'lucide-react';
 import { getAccounts } from '@/lib/auth';
+
+const CUSTOM_VENDORS_KEY = 'artsource-custom-vendors';
+
+export function getCustomVendors() {
+  return JSON.parse(localStorage.getItem(CUSTOM_VENDORS_KEY) || '{"wechat":[],"whatsapp":[],"freight":[],"paid":[]}');
+}
 
 export default function AdminModal({ onClose }) {
   const [visible, setVisible] = useState(false);
+  const [tab, setTab] = useState('vendors');
   const [accounts, setAccounts] = useState(getAccounts());
+  const [customVendors, setCustomVendors] = useState(getCustomVendors());
+  const [vtype, setVtype] = useState('wechat');
+  const [vcategory, setVcategory] = useState('');
+  const [vid, setVid] = useState('');
+  const [vdisplay, setVdisplay] = useState('');
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -16,6 +28,28 @@ export default function AdminModal({ onClose }) {
   const handleClose = () => {
     setVisible(false);
     setTimeout(onClose, 300);
+  };
+
+  const saveCustomVendors = (updated) => {
+    setCustomVendors(updated);
+    localStorage.setItem(CUSTOM_VENDORS_KEY, JSON.stringify(updated));
+  };
+
+  const handleAddVendor = (e) => {
+    e.preventDefault();
+    if (!vcategory.trim() || !vid.trim()) return;
+    const vendor = { id: vid.trim(), category: vcategory.trim() };
+    if (vdisplay.trim()) vendor.display = vdisplay.trim();
+    const updated = { ...customVendors, [vtype]: [...customVendors[vtype], vendor] };
+    saveCustomVendors(updated);
+    setVcategory('');
+    setVid('');
+    setVdisplay('');
+  };
+
+  const handleDeleteVendor = (type, index) => {
+    const updated = { ...customVendors, [type]: customVendors[type].filter((_, i) => i !== index) };
+    saveCustomVendors(updated);
   };
 
   const handleDeleteUser = (username) => {
@@ -33,6 +67,8 @@ export default function AdminModal({ onClose }) {
       localStorage.removeItem('artsource-token');
     }
   };
+
+  const totalCustom = Object.values(customVendors).reduce((s, v) => s + v.length, 0);
 
   return (
     <div
@@ -66,28 +102,72 @@ export default function AdminModal({ onClose }) {
             </button>
           </div>
 
-          <div className="space-y-2 max-h-80 overflow-y-auto">
-            {Object.keys(accounts).length === 0 ? (
-              <p className="text-sm text-muted-foreground/40 text-center py-8">No registered users</p>
-            ) : (
-              Object.entries(accounts).map(([username]) => (
-                <div key={username} className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div>
-                    <p className="text-sm font-medium text-foreground/80">{username}</p>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteUser(username)}
-                    className="p-1.5 rounded-lg transition-all"
-                    style={{ color: 'rgba(248,113,113,0.5)' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.1)'; e.currentTarget.style.color = '#f87171'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(248,113,113,0.5)'; }}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))
-            )}
+          <div className="flex gap-1 bg-muted rounded-xl p-1 mb-6">
+            {[{ key: 'vendors', label: 'Vendors' }, { key: 'users', label: 'Users' }].map(t => (
+              <button key={t.key} onClick={() => setTab(t.key)} className="flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                style={{ background: tab === t.key ? 'hsl(var(--card))' : 'transparent', color: tab === t.key ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))', boxShadow: tab === t.key ? '0 1px 4px rgba(0,0,0,0.3)' : 'none' }}
+              >{t.label}</button>
+            ))}
           </div>
+
+          {tab === 'vendors' ? (
+            <div className="space-y-4">
+              <form onSubmit={handleAddVendor} className="space-y-2 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>Add Vendor</p>
+                <div className="flex gap-2">
+                  {['wechat', 'whatsapp', 'freight', 'paid'].map(t => (
+                    <button key={t} type="button" onClick={() => setVtype(t)} className="flex-1 py-1.5 rounded-lg text-[10px] font-semibold uppercase transition-all"
+                      style={{ background: vtype === t ? 'rgba(255,255,255,0.1)' : 'transparent', color: vtype === t ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.25)' }}
+                    >{t}</button>
+                  ))}
+                </div>
+                <input type="text" value={vcategory} onChange={e => setVcategory(e.target.value)} placeholder="Category (e.g. Shoes)" className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none" onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.2)'} onBlur={e => e.target.style.borderColor = ''} />
+                <input type="text" value={vid} onChange={e => setVid(e.target.value)} placeholder="ID / Number" className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none" onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.2)'} onBlur={e => e.target.style.borderColor = ''} />
+                <input type="text" value={vdisplay} onChange={e => setVdisplay(e.target.value)} placeholder="Display name (optional)" className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none" onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.2)'} onBlur={e => e.target.style.borderColor = ''} />
+                <button type="submit" className="w-full py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5" style={{ background: 'hsl(var(--foreground))', color: 'hsl(var(--background))' }}>
+                  <Plus className="w-3 h-3" /> Add Vendor
+                </button>
+              </form>
+
+              {totalCustom > 0 ? (
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {Object.entries(customVendors).map(([type, vendors]) =>
+                    vendors.map((v, i) => (
+                      <div key={type + i} className="flex items-center justify-between p-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-[9px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)' }}>{type}</span>
+                          <span className="text-xs text-foreground/70 truncate">{v.category}</span>
+                          <span className="text-[10px] font-mono truncate" style={{ color: 'rgba(255,255,255,0.3)' }}>{v.display || v.id}</span>
+                        </div>
+                        <button onClick={() => handleDeleteVendor(type, i)} className="p-1 rounded-lg shrink-0" style={{ color: 'rgba(248,113,113,0.4)' }} onMouseEnter={e => e.currentTarget.style.color = '#f87171'} onMouseLeave={e => e.currentTarget.style.color = 'rgba(248,113,113,0.4)'}>
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-center py-6" style={{ color: 'rgba(255,255,255,0.2)' }}>No custom vendors added yet</p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {Object.keys(accounts).length === 0 ? (
+                <p className="text-sm text-muted-foreground/40 text-center py-8">No registered users</p>
+              ) : (
+                Object.entries(accounts).map(([username]) => (
+                  <div key={username} className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <p className="text-sm font-medium text-foreground/80">{username}</p>
+                    <button onClick={() => handleDeleteUser(username)} className="p-1.5 rounded-lg transition-all" style={{ color: 'rgba(248,113,113,0.5)' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.1)'; e.currentTarget.style.color = '#f87171'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(248,113,113,0.5)'; }}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          <p className="text-center text-xs text-muted-foreground/40 mt-5">Click outside to dismiss</p>
         </div>
       </div>
     </div>

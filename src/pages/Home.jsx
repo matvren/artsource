@@ -6,7 +6,8 @@ import ContactSection from '@/components/artsource/ContactSection';
 import VendorModal from '@/components/artsource/VendorModal';
 import AuthModal from '@/components/artsource/AuthModal';
 import ResetPasswordModal from '@/components/artsource/ResetPasswordModal';
-import AdminModal from '@/components/artsource/AdminModal';
+import AdminModal, { getCustomVendors } from '@/components/artsource/AdminModal';
+import DeleteAccountModal from '@/components/artsource/DeleteAccountModal';
 import { vendorData } from '@/lib/vendorData';
 
 export default function Home() {
@@ -44,6 +45,13 @@ export default function Home() {
   const [showAuth, setShowAuth] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+
+  const mergedVendorData = Object.fromEntries(
+    Object.entries(vendorData).map(([key, vendors]) => [
+      key, [...vendors, ...(getCustomVendors()[key] || [])],
+    ])
+  );
 
   const handleLogin = (user, favs) => {
     setCurrentUser(user);
@@ -55,6 +63,12 @@ export default function Home() {
     localStorage.removeItem('artsource-token');
     setCurrentUser(null);
     setFavorites([]);
+  };
+
+  const handleDeleteAccount = () => {
+    setCurrentUser(null);
+    setFavorites([]);
+    setShowDeleteAccount(false);
   };
 
   const toggleFavorite = (key) => {
@@ -71,7 +85,7 @@ export default function Home() {
   };
 
   const filteredData = Object.fromEntries(
-    Object.entries(vendorData).map(([key, vendors]) => [
+    Object.entries(mergedVendorData).map(([key, vendors]) => [
       key,
       vendors.filter(v =>
         !searchQuery ||
@@ -90,13 +104,14 @@ export default function Home() {
         onLogout={handleLogout}
         onOpenAdmin={() => setShowAdmin(true)}
         onOpenResetPassword={() => setShowResetPassword(true)}
+        onOpenDeleteAccount={() => setShowDeleteAccount(true)}
       />
 
       {/* Full-viewport hero — no top padding needed since navbar is fixed + transparent */}
       <HeroSection searchQuery={searchQuery} onSearch={setSearchQuery} />
 
       {/* Vendor directory */}
-      <main id="directory" className="max-w-6xl mx-auto px-6 pb-32" style={{ paddingTop: '80px' }}>
+      <main id="directory" className="max-w-6xl mx-auto px-6 pb-32" style={{ paddingTop: '80px', animation: 'pageFadeIn 0.6s ease 0.2s both' }}>
         {/* Section eyebrow */}
         <div className="mb-12">
           <p
@@ -213,6 +228,14 @@ export default function Home() {
         <ResetPasswordModal
           currentUser={currentUser}
           onClose={() => setShowResetPassword(false)}
+        />
+      )}
+
+      {showDeleteAccount && (
+        <DeleteAccountModal
+          currentUser={currentUser}
+          onClose={() => setShowDeleteAccount(false)}
+          onDeleted={handleDeleteAccount}
         />
       )}
 
