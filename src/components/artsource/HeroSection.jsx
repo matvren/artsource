@@ -24,7 +24,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
     };
 
     const buildGrid = () => {
-      const pad = 80;
+      const pad = 200;
       const w = canvas.width + pad * 2;
       const h = canvas.height + pad * 2;
       pts = [];
@@ -42,7 +42,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
     };
 
     resize();
-    ctx.fillStyle = '#020202';
+    ctx.fillStyle = '#010101';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     window.addEventListener('resize', resize);
 
@@ -53,7 +53,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
       const h = canvas.height;
 
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = '#020202';
+      ctx.fillStyle = '#010101';
       ctx.fillRect(0, 0, w, h);
 
       const disp = pts.map((row, ri) =>
@@ -107,7 +107,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
         }
       }
 
-      ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.008)';
       ctx.lineWidth = 0.5;
       for (let ri = 0; ri <= ROWS; ri++) {
         ctx.beginPath();
@@ -127,7 +127,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
       }
 
       const rect = canvas.getBoundingClientRect();
-      const gradient = ctx.createRadialGradient(w / 2, h / 2, h * 0.05, w / 2, h / 2, Math.max(w, h) * 0.75);
+      const gradient = ctx.createRadialGradient(w / 2, h / 2, h * 0.05, w / 2, h / 2, Math.max(w, h) * 1.5);
       gradient.addColorStop(0, 'rgba(0,0,0,0)');
       gradient.addColorStop(0.6, 'rgba(0,0,0,0)');
       gradient.addColorStop(0.85, 'rgba(0,0,0,0.35)');
@@ -136,15 +136,15 @@ export default function HeroSection({ searchQuery, onSearch }) {
       ctx.fillRect(0, 0, w, h);
 
       const topFade = ctx.createLinearGradient(0, 0, 0, h * 0.12);
-      topFade.addColorStop(0, 'rgba(2,2,2,1)');
-      topFade.addColorStop(1, 'rgba(2,2,2,0)');
+      topFade.addColorStop(0, 'rgba(1,1,1,1)');
+      topFade.addColorStop(1, 'rgba(1,1,1,0)');
       ctx.fillStyle = topFade;
       ctx.fillRect(0, 0, w, h * 0.12);
 
       const bottomFade = ctx.createLinearGradient(0, h * 0.6, 0, h);
-      bottomFade.addColorStop(0, 'rgba(2,2,2,0)');
-      bottomFade.addColorStop(0.85, 'rgba(2,2,2,0.4)');
-      bottomFade.addColorStop(1, 'rgba(2,2,2,1)');
+      bottomFade.addColorStop(0, 'rgba(1,1,1,0)');
+      bottomFade.addColorStop(0.85, 'rgba(1,1,1,0.4)');
+      bottomFade.addColorStop(1, 'rgba(1,1,1,1)');
       ctx.fillStyle = bottomFade;
       ctx.fillRect(0, 0, w, h);
 
@@ -171,15 +171,15 @@ export default function HeroSection({ searchQuery, onSearch }) {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden" style={{ background: '#020202' }}>
+    <div ref={containerRef} className="relative flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden" style={{ background: '#010101' }}>
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
         style={{
           display: 'block',
-          background: '#020202',
+          background: '#010101',
           opacity: 0,
-          animation: 'bgFadeIn 0.6s ease 0.1s forwards',
+          animation: 'bgFadeIn 1.5s ease 0.15s forwards',
         }}
       />
 

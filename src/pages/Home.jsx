@@ -82,7 +82,7 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: '#0a0a0a' }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ background: '#010101' }}>
       {/* Fixed navbar */}
       <Navbar
         currentUser={currentUser}
