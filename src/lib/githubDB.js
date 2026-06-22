@@ -3,6 +3,10 @@ const REPO = 'artsource';
 const FILE_PATH = 'data/db.json';
 const BRANCH = 'main';
 
+const LS_ACCOUNTS = 'artsource-accounts';
+const LS_FAVS_PREFIX = 'artsource-favs-';
+const LS_VENDORS = 'artsource-custom-vendors';
+
 export function getToken() {
   return localStorage.getItem('artsource-github-token') || '';
 }
@@ -25,16 +29,15 @@ async function getFileSha(token) {
   return data.sha;
 }
 
-export async function readDB() {
+async function readRaw() {
   const url = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${FILE_PATH}`;
   const res = await fetch(url, { cache: 'no-cache' });
-  if (!res.ok) throw new Error('Failed to read database');
+  if (!res.ok) throw new Error('Failed to read from GitHub');
   return await res.json();
 }
 
-export async function writeDB(data) {
+async function writeToGitHub(data) {
   const token = getToken();
-  if (!token) throw new Error('GitHub token not configured');
   const sha = await getFileSha(token);
   const json = JSON.stringify(data, null, 2);
   const content = btoa(unescape(encodeURIComponent(json)));
@@ -46,58 +49,129 @@ export async function writeDB(data) {
       Accept: 'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      message: 'Update database',
-      content,
-      sha,
-      branch: BRANCH,
-    }),
+    body: JSON.stringify({ message: 'Update database', content, sha, branch: BRANCH }),
   });
-  if (!res.ok) throw new Error('Failed to write database');
+  if (!res.ok) throw new Error('Failed to write to GitHub');
+}
+
+// --- Accounts ---
+
+export function getLocalAccounts() {
+  return JSON.parse(localStorage.getItem(LS_ACCOUNTS) || '{}');
+}
+
+function saveLocalAccounts(accounts) {
+  localStorage.setItem(LS_ACCOUNTS, JSON.stringify(accounts));
 }
 
 export async function getAccounts() {
-  const db = await readDB();
-  return db.accounts || {};
-}
-
-export async function getFavorites(username) {
-  const db = await readDB();
-  return db.favorites[username] || [];
-}
-
-export async function setFavorites(username, favs) {
-  const db = await readDB();
-  db.favorites[username] = favs;
-  await writeDB(db);
-}
-
-export async function getCustomVendors() {
-  const db = await readDB();
-  return db.customVendors || { wechat: [], whatsapp: [], freight: [], paid: [] };
-}
-
-export async function setCustomVendors(vendors) {
-  const db = await readDB();
-  db.customVendors = vendors;
-  await writeDB(db);
+  try {
+    return (await readRaw()).accounts || {};
+  } catch {
+    return getLocalAccounts();
+  }
 }
 
 export async function addAccount(username, hashedPassword) {
-  const db = await readDB();
-  db.accounts[username] = hashedPassword;
-  await writeDB(db);
+  if (hasToken()) {
+    try {
+      const db = await readRaw();
+      db.accounts[username] = hashedPassword;
+      await writeToGitHub(db);
+      return;
+    } catch {}
+  }
+  const accounts = getLocalAccounts();
+  accounts[username] = hashedPassword;
+  saveLocalAccounts(accounts);
 }
 
 export async function deleteAccount(username) {
-  const db = await readDB();
-  delete db.accounts[username];
-  delete db.favorites[username];
-  await writeDB(db);
+  if (hasToken()) {
+    try {
+      const db = await readRaw();
+      delete db.accounts[username];
+      delete db.favorites[username];
+      await writeToGitHub(db);
+      return;
+    } catch {}
+  }
+  const accounts = getLocalAccounts();
+  delete accounts[username];
+  saveLocalAccounts(accounts);
+  localStorage.removeItem(LS_FAVS_PREFIX + username);
 }
 
 export async function updatePassword(username, hashedPassword) {
-  const db = await readDB();
-  db.accounts[username] = hashedPassword;
-  await writeDB(db);
+  if (hasToken()) {
+    try {
+      const db = await readRaw();
+      db.accounts[username] = hashedPassword;
+      await writeToGitHub(db);
+      return;
+    } catch {}
+  }
+  const accounts = getLocalAccounts();
+  accounts[username] = hashedPassword;
+  saveLocalAccounts(accounts);
+}
+
+// --- Favorites ---
+
+function getLocalFavs(username) {
+  return JSON.parse(localStorage.getItem(LS_FAVS_PREFIX + username) || '[]');
+}
+
+function saveLocalFavs(username, favs) {
+  localStorage.setItem(LS_FAVS_PREFIX + username, JSON.stringify(favs));
+}
+
+export async function getFavorites(username) {
+  try {
+    const db = await readRaw();
+    return db.favorites[username] || [];
+  } catch {
+    return getLocalFavs(username);
+  }
+}
+
+export async function setFavorites(username, favs) {
+  saveLocalFavs(username, favs);
+  if (hasToken()) {
+    try {
+      const db = await readRaw();
+      db.favorites[username] = favs;
+      await writeToGitHub(db);
+    } catch {}
+  }
+}
+
+// --- Custom Vendors ---
+
+export function getLocalCustomVendors() {
+  return JSON.parse(localStorage.getItem(LS_VENDORS) || '{"wechat":[],"whatsapp":[],"freight":[],"paid":[]}');
+}
+
+function saveLocalCustomVendors(vendors) {
+  localStorage.setItem(LS_VENDORS, JSON.stringify(vendors));
+}
+
+export async function getCustomVendors() {
+  try {
+    const db = await readRaw();
+    return db.customVendors || { wechat: [], whatsapp: [], freight: [], paid: [] };
+  } catch {
+    return getLocalCustomVendors();
+  }
+}
+
+export async function setCustomVendors(vendors) {
+  saveLocalCustomVendors(vendors);
+  if (hasToken()) {
+    try {
+      const db = await readRaw();
+      db.customVendors = vendors;
+      await writeToGitHub(db);
+    } catch {}
+  }
 }
