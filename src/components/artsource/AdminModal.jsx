@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { X, Trash2, Plus, Key, Download, Upload } from 'lucide-react';
+import { X, Trash2, Plus, Download, Upload } from 'lucide-react';
 import { deleteAccountAndData } from '@/lib/auth';
-import { getAccounts, getCustomVendors as lsGetCustom, setCustomVendors as lsSetCustom, getToken, setToken, hasToken, pullFromGitHub, pushAllToGitHub } from '@/lib/githubDB';
+import { getAccounts, getCustomVendors as lsGetCustom, setCustomVendors as lsSetCustom, pullFromGitHub, pushAllToGitHub } from '@/lib/githubDB';
 
 export default function AdminModal({ currentUser, onClose, onSync }) {
   const [visible, setVisible] = useState(false);
@@ -12,7 +12,6 @@ export default function AdminModal({ currentUser, onClose, onSync }) {
   const [vcategory, setVcategory] = useState('');
   const [vid, setVid] = useState('');
   const [vdisplay, setVdisplay] = useState('');
-  const [ghToken, setGhToken] = useState(getToken());
   const [ghStatus, setGhStatus] = useState('');
 
   useEffect(() => {
@@ -31,12 +30,6 @@ export default function AdminModal({ currentUser, onClose, onSync }) {
   const handleClose = () => {
     setVisible(false);
     setTimeout(onClose, 300);
-  };
-
-  const handleSaveToken = async () => {
-    setToken(ghToken);
-    setGhStatus('Token saved');
-    setTimeout(() => setGhStatus(''), 2000);
   };
 
   const handlePull = async () => {
@@ -127,27 +120,20 @@ export default function AdminModal({ currentUser, onClose, onSync }) {
           </div>
 
           {tab === 'sync' && (
-            <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>GitHub Sync</p>
-              <p className="text-[11px] mb-3 leading-relaxed" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                Set a GitHub personal access token (fine-grained, contents read/write) to sync accounts, favorites, and custom vendors across devices. Without it, data stays on this device only.
+              <p className="text-[11px] mb-4 leading-relaxed" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                Pull to load latest data from GitHub (accounts, favorites, vendors). Push to save local data to GitHub — auto-syncs on signup, favorites, and vendor changes.
               </p>
-              <input type="password" value={ghToken} onChange={e => setGhToken(e.target.value)} placeholder="github_pat_..." className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none mb-2 font-mono" onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.2)'} onBlur={e => e.target.style.borderColor = ''} />
-              <button onClick={handleSaveToken} className="w-full py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 mb-3" style={{ background: 'hsl(var(--foreground))', color: 'hsl(var(--background))' }}>
-                <Key className="w-3 h-3" /> Save Token
-              </button>
-              {hasToken() && (
-                <div className="flex gap-2">
-                  <button onClick={handlePull} className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' }}>
-                    <Download className="w-3 h-3" /> Pull
-                  </button>
-                  <button onClick={handlePush} className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' }}>
-                    <Upload className="w-3 h-3" /> Push
-                  </button>
-                </div>
-              )}
-              {ghStatus && <p className="text-xs text-center mt-2" style={{ color: 'rgba(74,222,128,0.6)' }}>{ghStatus}</p>}
-              {!hasToken() && <p className="text-[10px] text-center mt-2" style={{ color: 'rgba(248,113,113,0.4)' }}>No token set — data is local only</p>}
+              <div className="flex gap-2">
+                <button onClick={handlePull} className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' }}>
+                  <Download className="w-3 h-3" /> Pull
+                </button>
+                <button onClick={handlePush} className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' }}>
+                  <Upload className="w-3 h-3" /> Push
+                </button>
+              </div>
+              {ghStatus && <p className="text-xs text-center mt-3" style={{ color: 'rgba(74,222,128,0.6)' }}>{ghStatus}</p>}
             </div>
           )}
 

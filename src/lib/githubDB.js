@@ -36,6 +36,19 @@ async function getFileSha() {
 }
 
 async function pushToGitHubRaw(data) {
+  // Try Vercel API endpoint first (server-side token, no client token needed)
+  try {
+    const apiUrl = '/api/sync';
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) return;
+  } catch {
+    // API unavailable (local dev), fall through
+  }
+  // Fallback: direct GitHub API with local token
   if (!hasToken()) return;
   const sha = await getFileSha();
   const json = JSON.stringify(data, null, 2);
