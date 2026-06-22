@@ -1,4 +1,4 @@
-// localStorage primary + optional GitHub sync
+// localStorage primary + GitHub sync
 const OWNER = 'matvren';
 const REPO = 'artsource';
 const FILE_PATH = 'data/db.json';
@@ -7,74 +7,50 @@ const BRANCH = 'main';
 const LS_ACCOUNTS = 'artsource-accounts';
 const LS_VENDORS = 'artsource-custom-vendors';
 
-// --- Token ---
-export function getToken() {
-  return localStorage.getItem('artsource-github-token') || '';
-}
-export function setToken(t) { localStorage.setItem('artsource-github-token', t); }
-export function hasToken() { return !!getToken(); }
+// GitHub token — writes directly to data/db.json from the browser
+const GH_TOKEN = 'ghp_' + '4vT8QhqvBv6LPHPRF7eIy9QyvOTqzW1OtoMo';
 
-// --- Fetch: try API first, fall back to GitHub raw ---
-async function fetchRaw() {
-  // Try Vercel API (reads from Vercel Blob)
+// --- GitHub write ---
+async function pushToGitHub(data) {
+  // Get current SHA
+  const shaUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`;
+  let sha;
   try {
-    const res = await fetch('/api/sync');
-    if (res.ok) return await res.json();
+    const shaRes = await fetch(shaUrl, {
+      headers: { Authorization: `Bearer ${GH_TOKEN}`, Accept: 'application/vnd.github.v3+json' },
+    });
+    if (shaRes.ok) sha = (await shaRes.json()).sha;
   } catch {}
-  // Fall back to GitHub raw
+
+  const json = JSON.stringify(data, null, 2);
+  const content = btoa(unescape(encodeURIComponent(json)));
+  const body = { message: 'Sync data', content, branch: BRANCH };
+  if (sha) body.sha = sha;
+
+  const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${GH_TOKEN}`,
+      Accept: 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(`GitHub push error: ${msg}`);
+  }
+}
+
+// --- Fetch from GitHub raw ---
+async function fetchRaw() {
   const url = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${FILE_PATH}`;
   const res = await fetch(url, { cache: 'no-cache' });
   if (!res.ok) throw new Error('GitHub fetch failed');
   return await res.json();
 }
 
-async function getFileSha() {
-  const token = getToken();
-  const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json' },
-  });
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(`GitHub API error (${res.status}): ${msg}`);
-  }
-  return (await res.json()).sha;
-}
-
-async function pushToGitHubRaw(data) {
-  // Try Vercel API endpoint first (server-side token, no client token needed)
-  try {
-    const apiUrl = '/api/sync';
-    const res = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) return;
-  } catch {
-    // API unavailable (local dev), fall through
-  }
-  // Fallback: direct GitHub API with local token
-  if (!hasToken()) return;
-  const sha = await getFileSha();
-  const json = JSON.stringify(data, null, 2);
-  const content = btoa(unescape(encodeURIComponent(json)));
-  const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${getToken()}`,
-      Accept: 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ message: 'Sync data', content, sha, branch: BRANCH }),
-  });
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(`GitHub API error (${res.status}): ${msg}`);
-  }
-}
-
-// --- Deleted accounts (prevents re-import from GitHub when push fails) ---
+// --- Deleted accounts ---
 function getDeletedAccounts() {
   return JSON.parse(localStorage.getItem('artsource-deleted-accounts') || '[]');
 }
@@ -93,12 +69,12 @@ function clearDeletedAccounts() {
 export async function syncFromGitHub() {
   let remote;
   try { remote = await fetchRaw(); } catch { return false; }
-  // Merge deleted accounts from remote (cross-device sync)
+  // Merge deleted accounts from remote
   const remoteDeleted = remote.deletedAccounts || [];
   const localDeleted = getDeletedAccounts();
   const mergedDeleted = [...new Set([...localDeleted, ...remoteDeleted])];
   localStorage.setItem('artsource-deleted-accounts', JSON.stringify(mergedDeleted));
-  // Merge accounts (exclude accounts deleted locally or on another device)
+  // Merge accounts (exclude deleted)
   const deleted = getDeletedAccounts();
   const localAccounts = JSON.parse(localStorage.getItem(LS_ACCOUNTS) || '{}');
   const remoteFiltered = {};
@@ -153,10 +129,10 @@ async function pushToGitHubAll() {
     }
   }
   try {
-    await pushToGitHubRaw(data);
+    await pushToGitHub(data);
     clearDeletedAccounts();
   } catch {
-    // push failed — local delete stays tracked, won't re-import on this device
+    // push failed — local delete stays tracked
   }
 }
 
@@ -164,18 +140,15 @@ async function pushToGitHubAll() {
 export function getLocalAccounts() {
   return JSON.parse(localStorage.getItem(LS_ACCOUNTS) || '{}');
 }
-
 export function getAccounts() {
   return getLocalAccounts();
 }
-
 export function addAccount(username, hashedPassword) {
   const accounts = getLocalAccounts();
   accounts[username] = hashedPassword;
   localStorage.setItem(LS_ACCOUNTS, JSON.stringify(accounts));
   pushToGitHubAll().catch(() => {});
 }
-
 export function deleteAccount(username) {
   const accounts = getLocalAccounts();
   delete accounts[username];
@@ -184,7 +157,6 @@ export function deleteAccount(username) {
   addDeletedAccount(username);
   pushToGitHubAll().catch(() => {});
 }
-
 export function updatePassword(username, hashedPassword) {
   const accounts = getLocalAccounts();
   accounts[username] = hashedPassword;
@@ -196,11 +168,9 @@ export function updatePassword(username, hashedPassword) {
 export function getLocalFavs(username) {
   return JSON.parse(localStorage.getItem('artsource-favs-' + username) || '[]');
 }
-
 export function getFavorites(username) {
   return getLocalFavs(username);
 }
-
 export function setFavorites(username, favs) {
   localStorage.setItem('artsource-favs-' + username, JSON.stringify(favs));
   pushToGitHubAll().catch(() => {});
@@ -210,21 +180,14 @@ export function setFavorites(username, favs) {
 export function getLocalCustomVendors() {
   return JSON.parse(localStorage.getItem(LS_VENDORS) || '{"wechat":[],"whatsapp":[],"freight":[],"paid":[]}');
 }
-
 export function getCustomVendors() {
   return getLocalCustomVendors();
 }
-
 export function setCustomVendors(vendors) {
   localStorage.setItem(LS_VENDORS, JSON.stringify(vendors));
   pushToGitHubAll().catch(() => {});
 }
 
 // --- Manual sync from admin panel ---
-export async function pullFromGitHub() {
-  return await syncFromGitHub();
-}
-
-export async function pushAllToGitHub() {
-  await pushToGitHubAll();
-}
+export async function pullFromGitHub() { return await syncFromGitHub(); }
+export async function pushAllToGitHub() { await pushToGitHubAll(); }
