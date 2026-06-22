@@ -225,6 +225,7 @@ export default function Home() {
 
       {showAdmin && (
         <AdminModal
+          currentUser={currentUser}
           onClose={() => setShowAdmin(false)}
           onSync={() => setSyncKey(k => k + 1)}
         />

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { X, Trash2, Plus, Key, Download, Upload } from 'lucide-react';
 import { deleteAccountAndData } from '@/lib/auth';
+import { ADMIN_USERS } from '@/lib/vendorData';
 import { getAccounts, getCustomVendors as lsGetCustom, setCustomVendors as lsSetCustom, getToken, setToken, hasToken, pullFromGitHub, pushAllToGitHub } from '@/lib/githubDB';
 
-export default function AdminModal({ onClose, onSync }) {
+export default function AdminModal({ currentUser, onClose, onSync }) {
   const [visible, setVisible] = useState(false);
   const [tab, setTab] = useState('vendors');
   const [accounts, setAccounts] = useState(getAccounts());
@@ -113,7 +114,7 @@ export default function AdminModal({ onClose, onSync }) {
           </div>
 
           <div className="flex gap-1 bg-muted rounded-xl p-1 mb-4">
-            {[{ key: 'vendors', label: 'Vendors' }, { key: 'users', label: 'Users' }, { key: 'sync', label: 'Sync' }].map(t => (
+            {[{ key: 'vendors', label: 'Vendors' }, { key: 'users', label: 'Users' }, ...(ADMIN_USERS.includes(currentUser) ? [{ key: 'sync', label: 'Sync' }] : [])].map(t => (
               <button key={t.key} onClick={() => setTab(t.key)} className="flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200"
                 style={{ background: tab === t.key ? 'hsl(var(--card))' : 'transparent', color: tab === t.key ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))', boxShadow: tab === t.key ? '0 1px 4px rgba(0,0,0,0.3)' : 'none' }}
               >{t.label}</button>

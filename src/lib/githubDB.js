@@ -26,9 +26,12 @@ async function getFileSha() {
   const token = getToken();
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`;
   const res = await fetch(url, {
-    headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' },
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json' },
   });
-  if (!res.ok) throw new Error('Failed to get file info');
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(`GitHub API error (${res.status}): ${msg}`);
+  }
   return (await res.json()).sha;
 }
 
@@ -37,15 +40,19 @@ async function pushToGitHubRaw(data) {
   const sha = await getFileSha();
   const json = JSON.stringify(data, null, 2);
   const content = btoa(unescape(encodeURIComponent(json)));
-  await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
+  const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
     method: 'PUT',
     headers: {
-      Authorization: `token ${getToken()}`,
+      Authorization: `Bearer ${getToken()}`,
       Accept: 'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ message: 'Sync data', content, sha, branch: BRANCH }),
   });
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(`GitHub API error (${res.status}): ${msg}`);
+  }
 }
 
 // --- Merge: pull GitHub data into localStorage ---
