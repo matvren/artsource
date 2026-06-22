@@ -5,6 +5,8 @@ import VendorSection from '@/components/artsource/VendorSection';
 import ContactSection from '@/components/artsource/ContactSection';
 import VendorModal from '@/components/artsource/VendorModal';
 import AuthModal from '@/components/artsource/AuthModal';
+import ResetPasswordModal from '@/components/artsource/ResetPasswordModal';
+import AdminModal from '@/components/artsource/AdminModal';
 import { vendorData } from '@/lib/vendorData';
 
 export default function Home() {
@@ -40,6 +42,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
   const handleLogin = (user, favs) => {
     setCurrentUser(user);
@@ -84,6 +88,8 @@ export default function Home() {
         currentUser={currentUser}
         onOpenAuth={() => setShowAuth(true)}
         onLogout={handleLogout}
+        onOpenAdmin={() => setShowAdmin(true)}
+        onOpenResetPassword={() => setShowResetPassword(true)}
       />
 
       {/* Full-viewport hero — no top padding needed since navbar is fixed + transparent */}
@@ -164,6 +170,19 @@ export default function Home() {
         <AuthModal
           onClose={() => setShowAuth(false)}
           onLogin={handleLogin}
+        />
+      )}
+
+      {showAdmin && (
+        <AdminModal
+          onClose={() => setShowAdmin(false)}
+        />
+      )}
+
+      {showResetPassword && (
+        <ResetPasswordModal
+          currentUser={currentUser}
+          onClose={() => setShowResetPassword(false)}
         />
       )}
 

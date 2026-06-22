@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { LogOut, Settings, Shield, ChevronDown } from 'lucide-react';
 import { ADMIN_USERS } from '@/lib/vendorData';
 
-export default function Navbar({ currentUser, onOpenAuth, onLogout }) {
+export default function Navbar({ currentUser, onOpenAuth, onLogout, onOpenAdmin, onOpenResetPassword }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -59,7 +59,7 @@ export default function Navbar({ currentUser, onOpenAuth, onLogout }) {
                 style={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)' }}
               >
                 {isAdmin && (
-                  <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left"
+                  <button onClick={() => { setOpen(false); onOpenAdmin(); }} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left"
                     style={{ color: 'rgba(255,255,255,0.5)' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -68,7 +68,7 @@ export default function Navbar({ currentUser, onOpenAuth, onLogout }) {
                     Admin Panel
                   </button>
                 )}
-                <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left"
+                <button onClick={() => { setOpen(false); onOpenResetPassword(); }} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left"
                   style={{ color: 'rgba(255,255,255,0.5)' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}

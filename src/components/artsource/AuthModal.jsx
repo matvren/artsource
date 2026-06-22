@@ -1,21 +1,44 @@
 import { useState, useEffect } from 'react';
 import { login, signup } from '@/lib/auth';
 
+const REMEMBER_KEY = 'artsource-remembered';
+
+function loadRemembered(username) {
+  try {
+    const data = JSON.parse(localStorage.getItem(REMEMBER_KEY) || '{}');
+    return data[username] || '';
+  } catch { return ''; }
+}
+
+function saveRemembered(username, password, remember) {
+  const data = JSON.parse(localStorage.getItem(REMEMBER_KEY) || '{}');
+  if (remember) data[username] = password;
+  else delete data[username];
+  localStorage.setItem(REMEMBER_KEY, JSON.stringify(data));
+}
+
 export default function AuthModal({ onClose, onLogin }) {
   const [tab, setTab] = useState('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Trigger entrance animation
     requestAnimationFrame(() => setVisible(true));
     const handler = (e) => { if (e.key === 'Escape') handleClose(); };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, []);
+
+  useEffect(() => {
+    if (tab === 'login' && username) {
+      const saved = loadRemembered(username);
+      if (saved) setPassword(saved);
+    }
+  }, [tab, username]);
 
   const handleClose = () => {
     setVisible(false);
@@ -29,6 +52,7 @@ export default function AuthModal({ onClose, onLogin }) {
     try {
       const fn = tab === 'login' ? login : signup;
       const { user, favs } = fn(username.trim(), password.trim());
+      if (tab === 'login') saveRemembered(username.trim(), password.trim(), remember);
       onLogin(user, favs);
     } catch (err) {
       setError(err.message);
@@ -130,6 +154,23 @@ export default function AuthModal({ onClose, onLogin }) {
                 <p className="text-[11px] text-muted-foreground/60 mt-1.5">Min 8 chars, one uppercase letter</p>
               )}
             </div>
+
+            {tab === 'login' && (
+              <label className="flex items-center gap-2 cursor-pointer" style={{ paddingTop: '2px' }}>
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={e => setRemember(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border cursor-pointer"
+                  style={{
+                    accentColor: '#f5f5f5',
+                    borderColor: 'rgba(255,255,255,0.2)',
+                    background: 'transparent',
+                  }}
+                />
+                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Remember password</span>
+              </label>
+            )}
 
             {error && (
               <div
