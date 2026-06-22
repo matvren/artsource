@@ -9,7 +9,7 @@ import ResetPasswordModal from '@/components/artsource/ResetPasswordModal';
 import AdminModal from '@/components/artsource/AdminModal';
 import DeleteAccountModal from '@/components/artsource/DeleteAccountModal';
 import { vendorData } from '@/lib/vendorData';
-import { getFavorites as ghGetFavs, getCustomVendors as ghGetCustom, setFavorites as ghSetFavs } from '@/lib/githubDB';
+import { getFavorites as lsGetFavs, getCustomVendors as lsGetCustom, setFavorites as lsSetFavs } from '@/lib/githubDB';
 
 export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -32,21 +32,14 @@ export default function Home() {
     }
     return null;
   });
-  const [favorites, setFavorites] = useState([]);
-  const [customVendors, setCustomVendors] = useState({ wechat: [], whatsapp: [], freight: [], paid: [] });
+  const [favorites, setFavorites] = useState(() => currentUser ? lsGetFavs(currentUser) : []);
+  const [customVendors, setCustomVendors] = useState(() => lsGetCustom());
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
-
-  useEffect(() => {
-    if (currentUser) {
-      ghGetFavs(currentUser).then(setFavorites).catch(() => {});
-    }
-    ghGetCustom().then(setCustomVendors).catch(() => {});
-  }, [currentUser]);
 
   const mergedVendorData = Object.fromEntries(
     Object.entries(vendorData).map(([key, vendors]) => [
@@ -56,9 +49,8 @@ export default function Home() {
 
   const handleLogin = (user) => {
     setCurrentUser(user);
-    setFavorites([]);
+    setFavorites(lsGetFavs(user));
     setShowAuth(false);
-    ghGetFavs(user).then(setFavorites).catch(() => {});
   };
 
   const handleLogout = () => {
@@ -71,7 +63,7 @@ export default function Home() {
     setCurrentUser(null);
     setFavorites([]);
     setShowDeleteAccount(false);
-    ghGetCustom().then(setCustomVendors).catch(() => {});
+    setCustomVendors(lsGetCustom());
   };
 
   const toggleFavorite = (key) => {
@@ -80,7 +72,7 @@ export default function Home() {
       ? favorites.filter(f => f !== key)
       : [...favorites, key];
     setFavorites(newFavs);
-    ghSetFavs(currentUser, newFavs).catch(() => {});
+    lsSetFavs(currentUser, newFavs);
   };
 
   const openVendor = (vendor, type) => {

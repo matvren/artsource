@@ -15,10 +15,9 @@ function genToken() {
 
 export function getSessions() { return JSON.parse(localStorage.getItem('artsource-sessions') || '{}'); }
 export function saveSessions(s) { localStorage.setItem('artsource-sessions', JSON.stringify(s)); }
-export function getLocalFavs(user) { return JSON.parse(localStorage.getItem('artsource-favs-' + user) || '[]'); }
 
-export async function login(username, password) {
-  const accounts = await getAccounts();
+export function login(username, password) {
+  const accounts = getAccounts();
   if (!accounts[username] || accounts[username] !== simpleHash(password)) {
     throw new Error('Invalid username or password');
   }
@@ -30,12 +29,12 @@ export async function login(username, password) {
   return { user: username };
 }
 
-export async function signup(username, password) {
+export function signup(username, password) {
   if (password.length < 8) throw new Error('Password must be at least 8 characters');
   if (!/[A-Z]/.test(password)) throw new Error('Password needs an uppercase letter');
-  const accounts = await getAccounts();
+  const accounts = getAccounts();
   if (accounts[username]) throw new Error('Username already taken');
-  await addAccount(username, simpleHash(password));
+  addAccount(username, simpleHash(password));
   const token = genToken();
   const sessions = getSessions();
   sessions[token] = username;
@@ -45,14 +44,14 @@ export async function signup(username, password) {
   return { user: username };
 }
 
-export async function resetPassword(username, oldPass, newPass) {
-  const accounts = await getAccounts();
+export function resetPassword(username, oldPass, newPass) {
+  const accounts = getAccounts();
   if (accounts[username] !== simpleHash(oldPass)) throw new Error('Current password is incorrect');
-  await updatePassword(username, simpleHash(newPass));
+  updatePassword(username, simpleHash(newPass));
 }
 
-export async function deleteAccountAndData(username) {
-  await deleteAccount(username);
+export function deleteAccountAndData(username) {
+  deleteAccount(username);
 }
 
 export function logout() {

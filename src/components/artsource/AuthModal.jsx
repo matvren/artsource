@@ -45,13 +45,13 @@ export default function AuthModal({ onClose, onLogin }) {
     setTimeout(onClose, 300);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
       const fn = tab === 'login' ? login : signup;
-      const { user } = await fn(username.trim(), password.trim());
+      const { user } = fn(username.trim(), password.trim());
       if (tab === 'login') saveRemembered(username.trim(), password.trim(), remember);
       onLogin(user);
     } catch (err) {
