@@ -166,6 +166,25 @@ export default function Home() {
         />
       )}
 
+      {/* Scroll to top */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="fixed bottom-6 right-6 z-50 w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-110"
+        style={{
+          background: scrollProgress > 0.1 ? 'rgba(255,255,255,0.06)' : 'transparent',
+          border: scrollProgress > 0.1 ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
+          opacity: scrollProgress > 0.1 ? 1 : 0,
+          pointerEvents: scrollProgress > 0.1 ? 'auto' : 'none',
+        }}
+      >
+        <svg
+          width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke="rgba(255,255,255,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        >
+          <path d="M18 15l-6-6-6 6" />
+        </svg>
+      </button>
+
       {/* Custom scrollbar indicator */}
       <div
         className="fixed right-0 top-0 bottom-0 w-[3px] pointer-events-none z-50"
