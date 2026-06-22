@@ -15,7 +15,7 @@ export default function VendorSection({
 }) {
   const [expanded, setExpanded] = useState(false);
   const gridRef = useRef(null);
-  const [height, setHeight] = useState('auto');
+  const [height, setHeight] = useState('0px');
 
   useEffect(() => {
     if (gridRef.current) {

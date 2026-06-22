@@ -42,6 +42,8 @@ export default function HeroSection({ searchQuery, onSearch }) {
     };
 
     resize();
+    ctx.fillStyle = '#080808';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     window.addEventListener('resize', resize);
 
     const draw = () => {
@@ -169,7 +171,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden">
+    <div ref={containerRef} className="relative flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden" style={{ background: '#080808' }}>
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
