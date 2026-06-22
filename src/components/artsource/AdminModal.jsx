@@ -1,25 +1,31 @@
 import { useState, useEffect } from 'react';
-import { X, Trash2, Plus } from 'lucide-react';
-import { getAccounts } from '@/lib/auth';
-
-const CUSTOM_VENDORS_KEY = 'artsource-custom-vendors';
-
-export function getCustomVendors() {
-  return JSON.parse(localStorage.getItem(CUSTOM_VENDORS_KEY) || '{"wechat":[],"whatsapp":[],"freight":[],"paid":[]}');
-}
+import { X, Trash2, Plus, Key } from 'lucide-react';
+import { deleteAccountAndData } from '@/lib/auth';
+import { getAccounts, getCustomVendors as ghGetCustom, setCustomVendors as ghSetCustom, hasToken, setToken, getToken } from '@/lib/githubDB';
 
 export default function AdminModal({ onClose }) {
   const [visible, setVisible] = useState(false);
   const [tab, setTab] = useState('vendors');
-  const [accounts, setAccounts] = useState(getAccounts());
-  const [customVendors, setCustomVendors] = useState(getCustomVendors());
+  const [accounts, setAccounts] = useState({});
+  const [customVendors, setCustomVendors] = useState({ wechat: [], whatsapp: [], freight: [], paid: [] });
   const [vtype, setVtype] = useState('wechat');
   const [vcategory, setVcategory] = useState('');
   const [vid, setVid] = useState('');
   const [vdisplay, setVdisplay] = useState('');
+  const [ghToken, setGhToken] = useState(getToken());
+  const [ghStatus, setGhStatus] = useState('');
+
+  const loadData = async () => {
+    try {
+      const [accts, vendors] = await Promise.all([getAccounts(), ghGetCustom()]);
+      setAccounts(accts);
+      setCustomVendors(vendors);
+    } catch {}
+  };
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
+    loadData();
     const handler = (e) => { if (e.key === 'Escape') handleClose(); };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
@@ -30,42 +36,36 @@ export default function AdminModal({ onClose }) {
     setTimeout(onClose, 300);
   };
 
-  const saveCustomVendors = (updated) => {
-    setCustomVendors(updated);
-    localStorage.setItem(CUSTOM_VENDORS_KEY, JSON.stringify(updated));
+  const handleSaveToken = () => {
+    setToken(ghToken);
+    setGhStatus(hasToken() ? 'Token saved' : '');
+    setTimeout(() => setGhStatus(''), 2000);
   };
 
-  const handleAddVendor = (e) => {
+  const handleAddVendor = async (e) => {
     e.preventDefault();
     if (!vcategory.trim() || !vid.trim()) return;
     const vendor = { id: vid.trim(), category: vcategory.trim() };
     if (vdisplay.trim()) vendor.display = vdisplay.trim();
     const updated = { ...customVendors, [vtype]: [...customVendors[vtype], vendor] };
-    saveCustomVendors(updated);
+    setCustomVendors(updated);
+    try { await ghSetCustom(updated); } catch {}
     setVcategory('');
     setVid('');
     setVdisplay('');
   };
 
-  const handleDeleteVendor = (type, index) => {
+  const handleDeleteVendor = async (type, index) => {
     const updated = { ...customVendors, [type]: customVendors[type].filter((_, i) => i !== index) };
-    saveCustomVendors(updated);
+    setCustomVendors(updated);
+    try { await ghSetCustom(updated); } catch {}
   };
 
-  const handleDeleteUser = (username) => {
-    const updated = { ...accounts };
-    delete updated[username];
-    setAccounts(updated);
-    localStorage.setItem('artsource-accounts', JSON.stringify(updated));
-    const sessions = JSON.parse(localStorage.getItem('artsource-sessions') || '{}');
-    for (const [token, user] of Object.entries(sessions)) {
-      if (user === username) delete sessions[token];
-    }
-    localStorage.setItem('artsource-sessions', JSON.stringify(sessions));
-    const token = localStorage.getItem('artsource-token');
-    if (token && sessions[token] === username) {
-      localStorage.removeItem('artsource-token');
-    }
+  const handleDeleteUser = async (username) => {
+    try {
+      await deleteAccountAndData(username);
+      setAccounts(prev => { const u = { ...prev }; delete u[username]; return u; });
+    } catch {}
   };
 
   const totalCustom = Object.values(customVendors).reduce((s, v) => s + v.length, 0);
@@ -102,15 +102,30 @@ export default function AdminModal({ onClose }) {
             </button>
           </div>
 
-          <div className="flex gap-1 bg-muted rounded-xl p-1 mb-6">
-            {[{ key: 'vendors', label: 'Vendors' }, { key: 'users', label: 'Users' }].map(t => (
+          <div className="flex gap-1 bg-muted rounded-xl p-1 mb-4">
+            {[{ key: 'vendors', label: 'Vendors' }, { key: 'users', label: 'Users' }, { key: 'token', label: 'Token' }].map(t => (
               <button key={t.key} onClick={() => setTab(t.key)} className="flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200"
                 style={{ background: tab === t.key ? 'hsl(var(--card))' : 'transparent', color: tab === t.key ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))', boxShadow: tab === t.key ? '0 1px 4px rgba(0,0,0,0.3)' : 'none' }}
               >{t.label}</button>
             ))}
           </div>
 
-          {tab === 'vendors' ? (
+          {tab === 'token' && (
+            <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>GitHub Token</p>
+              <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                Required for syncing data across devices. Create a fine-grained token with <strong>contents</strong> read/write access to the repo.
+              </p>
+              <input type="password" value={ghToken} onChange={e => setGhToken(e.target.value)} placeholder="ghp_..." className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none mb-2 font-mono" onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.2)'} onBlur={e => e.target.style.borderColor = ''} />
+              <button onClick={handleSaveToken} className="w-full py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5" style={{ background: 'hsl(var(--foreground))', color: 'hsl(var(--background))' }}>
+                <Key className="w-3 h-3" /> Save Token
+              </button>
+              {ghStatus && <p className="text-xs text-center mt-2" style={{ color: 'rgba(74,222,128,0.6)' }}>{ghStatus}</p>}
+              {hasToken() && <p className="text-xs text-center mt-1" style={{ color: 'rgba(74,222,128,0.4)' }}>Token is configured</p>}
+            </div>
+          )}
+
+          {tab === 'vendors' && (
             <div className="space-y-4">
               <form onSubmit={handleAddVendor} className="space-y-2 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>Add Vendor</p>
@@ -124,9 +139,10 @@ export default function AdminModal({ onClose }) {
                 <input type="text" value={vcategory} onChange={e => setVcategory(e.target.value)} placeholder="Category (e.g. Shoes)" className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none" onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.2)'} onBlur={e => e.target.style.borderColor = ''} />
                 <input type="text" value={vid} onChange={e => setVid(e.target.value)} placeholder="ID / Number" className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none" onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.2)'} onBlur={e => e.target.style.borderColor = ''} />
                 <input type="text" value={vdisplay} onChange={e => setVdisplay(e.target.value)} placeholder="Display name (optional)" className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none" onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.2)'} onBlur={e => e.target.style.borderColor = ''} />
-                <button type="submit" className="w-full py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5" style={{ background: 'hsl(var(--foreground))', color: 'hsl(var(--background))' }}>
+                <button type="submit" disabled={!hasToken()} className="w-full py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 disabled:opacity-30" style={{ background: 'hsl(var(--foreground))', color: 'hsl(var(--background))' }}>
                   <Plus className="w-3 h-3" /> Add Vendor
                 </button>
+                {!hasToken() && <p className="text-[10px] text-center" style={{ color: 'rgba(248,113,113,0.5)' }}>Set GitHub token in Token tab first</p>}
               </form>
 
               {totalCustom > 0 ? (
@@ -150,8 +166,10 @@ export default function AdminModal({ onClose }) {
                 <p className="text-xs text-center py-6" style={{ color: 'rgba(255,255,255,0.2)' }}>No custom vendors added yet</p>
               )}
             </div>
-          ) : (
-            <div className="space-y-2 max-h-80 overflow-y-auto">
+          )}
+
+          {tab === 'users' && (
+            <div className="space-y-2 max-h-72 overflow-y-auto">
               {Object.keys(accounts).length === 0 ? (
                 <p className="text-sm text-muted-foreground/40 text-center py-8">No registered users</p>
               ) : (

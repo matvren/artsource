@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { deleteAccountAndData } from '@/lib/auth';
 
 export default function DeleteAccountModal({ currentUser, onClose, onDeleted }) {
   const [visible, setVisible] = useState(false);
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -18,22 +20,25 @@ export default function DeleteAccountModal({ currentUser, onClose, onDeleted }) 
     setTimeout(onClose, 300);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (confirm !== currentUser) {
       setError('Type your username exactly to confirm');
       return;
     }
-    const accounts = JSON.parse(localStorage.getItem('artsource-accounts') || '{}');
-    delete accounts[currentUser];
-    localStorage.setItem('artsource-accounts', JSON.stringify(accounts));
-    const sessions = JSON.parse(localStorage.getItem('artsource-sessions') || '{}');
-    for (const [token, user] of Object.entries(sessions)) {
-      if (user === currentUser) delete sessions[token];
+    setLoading(true);
+    try {
+      await deleteAccountAndData(currentUser);
+      const sessions = JSON.parse(localStorage.getItem('artsource-sessions') || '{}');
+      for (const [token, user] of Object.entries(sessions)) {
+        if (user === currentUser) delete sessions[token];
+      }
+      localStorage.setItem('artsource-sessions', JSON.stringify(sessions));
+      localStorage.removeItem('artsource-token');
+      onDeleted();
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
     }
-    localStorage.setItem('artsource-sessions', JSON.stringify(sessions));
-    localStorage.removeItem('artsource-token');
-    localStorage.removeItem('artsource-favs-' + currentUser);
-    onDeleted();
   };
 
   return (
@@ -88,16 +93,16 @@ export default function DeleteAccountModal({ currentUser, onClose, onDeleted }) 
 
           <button
             onClick={handleDelete}
-            disabled={confirm !== currentUser}
+            disabled={confirm !== currentUser || loading}
             className="w-full py-3 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-30"
             style={{
-              background: confirm === currentUser ? '#dc2626' : 'rgba(255,255,255,0.06)',
-              color: confirm === currentUser ? '#fff' : 'rgba(255,255,255,0.3)',
+              background: confirm === currentUser && !loading ? '#dc2626' : 'rgba(255,255,255,0.06)',
+              color: confirm === currentUser && !loading ? '#fff' : 'rgba(255,255,255,0.3)',
             }}
-            onMouseEnter={e => { if (confirm === currentUser) e.currentTarget.style.background = '#ef4444'; }}
-            onMouseLeave={e => { if (confirm === currentUser) e.currentTarget.style.background = '#dc2626'; }}
+            onMouseEnter={e => { if (confirm === currentUser && !loading) e.currentTarget.style.background = '#ef4444'; }}
+            onMouseLeave={e => { if (confirm === currentUser && !loading) e.currentTarget.style.background = '#dc2626'; }}
           >
-            Delete Forever
+            {loading ? 'Deleting...' : 'Delete Forever'}
           </button>
 
           <p className="text-center text-xs text-muted-foreground/40 mt-5">Click outside to dismiss</p>

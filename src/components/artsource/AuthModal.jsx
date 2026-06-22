@@ -51,9 +51,9 @@ export default function AuthModal({ onClose, onLogin }) {
     setLoading(true);
     try {
       const fn = tab === 'login' ? login : signup;
-      const { user, favs } = fn(username.trim(), password.trim());
+      const { user } = await fn(username.trim(), password.trim());
       if (tab === 'login') saveRemembered(username.trim(), password.trim(), remember);
-      onLogin(user, favs);
+      onLogin(user);
     } catch (err) {
       setError(err.message);
     } finally {

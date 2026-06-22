@@ -6,9 +6,10 @@ import ContactSection from '@/components/artsource/ContactSection';
 import VendorModal from '@/components/artsource/VendorModal';
 import AuthModal from '@/components/artsource/AuthModal';
 import ResetPasswordModal from '@/components/artsource/ResetPasswordModal';
-import AdminModal, { getCustomVendors } from '@/components/artsource/AdminModal';
+import AdminModal from '@/components/artsource/AdminModal';
 import DeleteAccountModal from '@/components/artsource/DeleteAccountModal';
 import { vendorData } from '@/lib/vendorData';
+import { getFavorites as ghGetFavs, getCustomVendors as ghGetCustom, setFavorites as ghSetFavs } from '@/lib/githubDB';
 
 export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -31,15 +32,8 @@ export default function Home() {
     }
     return null;
   });
-  const [favorites, setFavorites] = useState(() => {
-    const token = localStorage.getItem('artsource-token');
-    if (token) {
-      const sessions = JSON.parse(localStorage.getItem('artsource-sessions') || '{}');
-      const user = sessions[token];
-      return user ? JSON.parse(localStorage.getItem('artsource-favs-' + user) || '[]') : [];
-    }
-    return [];
-  });
+  const [favorites, setFavorites] = useState([]);
+  const [customVendors, setCustomVendors] = useState({ wechat: [], whatsapp: [], freight: [], paid: [] });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
@@ -47,16 +41,24 @@ export default function Home() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
+  useEffect(() => {
+    if (currentUser) {
+      ghGetFavs(currentUser).then(setFavorites).catch(() => {});
+    }
+    ghGetCustom().then(setCustomVendors).catch(() => {});
+  }, [currentUser]);
+
   const mergedVendorData = Object.fromEntries(
     Object.entries(vendorData).map(([key, vendors]) => [
-      key, [...vendors, ...(getCustomVendors()[key] || [])],
+      key, [...vendors, ...(customVendors[key] || [])],
     ])
   );
 
-  const handleLogin = (user, favs) => {
+  const handleLogin = (user) => {
     setCurrentUser(user);
-    setFavorites(favs);
+    setFavorites([]);
     setShowAuth(false);
+    ghGetFavs(user).then(setFavorites).catch(() => {});
   };
 
   const handleLogout = () => {
@@ -69,6 +71,7 @@ export default function Home() {
     setCurrentUser(null);
     setFavorites([]);
     setShowDeleteAccount(false);
+    ghGetCustom().then(setCustomVendors).catch(() => {});
   };
 
   const toggleFavorite = (key) => {
@@ -77,7 +80,7 @@ export default function Home() {
       ? favorites.filter(f => f !== key)
       : [...favorites, key];
     setFavorites(newFavs);
-    localStorage.setItem('artsource-favs-' + currentUser, JSON.stringify(newFavs));
+    ghSetFavs(currentUser, newFavs).catch(() => {});
   };
 
   const openVendor = (vendor, type) => {

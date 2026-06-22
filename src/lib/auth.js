@@ -1,3 +1,5 @@
+import { getAccounts, addAccount, deleteAccount, updatePassword } from './githubDB';
+
 function simpleHash(s) {
   let h = 0;
   for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
@@ -11,14 +13,12 @@ function genToken() {
   return t;
 }
 
-export function getAccounts() { return JSON.parse(localStorage.getItem('artsource-accounts') || '{}'); }
-export function saveAccounts(a) { localStorage.setItem('artsource-accounts', JSON.stringify(a)); }
 export function getSessions() { return JSON.parse(localStorage.getItem('artsource-sessions') || '{}'); }
 export function saveSessions(s) { localStorage.setItem('artsource-sessions', JSON.stringify(s)); }
-export function getFavs(user) { return JSON.parse(localStorage.getItem('artsource-favs-' + user) || '[]'); }
+export function getLocalFavs(user) { return JSON.parse(localStorage.getItem('artsource-favs-' + user) || '[]'); }
 
-export function login(username, password) {
-  const accounts = getAccounts();
+export async function login(username, password) {
+  const accounts = await getAccounts();
   if (!accounts[username] || accounts[username] !== simpleHash(password)) {
     throw new Error('Invalid username or password');
   }
@@ -27,28 +27,34 @@ export function login(username, password) {
   sessions[token] = username;
   saveSessions(sessions);
   localStorage.setItem('artsource-token', token);
-  return { user: username, favs: getFavs(username) };
+  return { user: username };
 }
 
-export function signup(username, password) {
+export async function signup(username, password) {
   if (password.length < 8) throw new Error('Password must be at least 8 characters');
   if (!/[A-Z]/.test(password)) throw new Error('Password needs an uppercase letter');
-  const accounts = getAccounts();
+  const accounts = await getAccounts();
   if (accounts[username]) throw new Error('Username already taken');
-  accounts[username] = simpleHash(password);
-  saveAccounts(accounts);
+  await addAccount(username, simpleHash(password));
   const token = genToken();
   const sessions = getSessions();
   sessions[token] = username;
   saveSessions(sessions);
   localStorage.setItem('artsource-token', token);
   localStorage.setItem('artsource-favs-' + username, '[]');
-  return { user: username, favs: [] };
+  return { user: username };
 }
 
-export function resetPassword(username, oldPass, newPass) {
-  const accounts = getAccounts();
+export async function resetPassword(username, oldPass, newPass) {
+  const accounts = await getAccounts();
   if (accounts[username] !== simpleHash(oldPass)) throw new Error('Current password is incorrect');
-  accounts[username] = simpleHash(newPass);
-  saveAccounts(accounts);
+  await updatePassword(username, simpleHash(newPass));
+}
+
+export async function deleteAccountAndData(username) {
+  await deleteAccount(username);
+}
+
+export function logout() {
+  localStorage.removeItem('artsource-token');
 }
