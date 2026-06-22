@@ -42,7 +42,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
     };
 
     resize();
-    ctx.fillStyle = '#040404';
+    ctx.fillStyle = '#020202';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     window.addEventListener('resize', resize);
 
@@ -53,7 +53,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
       const h = canvas.height;
 
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = '#040404';
+      ctx.fillStyle = '#020202';
       ctx.fillRect(0, 0, w, h);
 
       const disp = pts.map((row, ri) =>
@@ -136,15 +136,15 @@ export default function HeroSection({ searchQuery, onSearch }) {
       ctx.fillRect(0, 0, w, h);
 
       const topFade = ctx.createLinearGradient(0, 0, 0, h * 0.12);
-      topFade.addColorStop(0, 'rgba(4,4,4,1)');
-      topFade.addColorStop(1, 'rgba(4,4,4,0)');
+      topFade.addColorStop(0, 'rgba(2,2,2,1)');
+      topFade.addColorStop(1, 'rgba(2,2,2,0)');
       ctx.fillStyle = topFade;
       ctx.fillRect(0, 0, w, h * 0.12);
 
       const bottomFade = ctx.createLinearGradient(0, h * 0.6, 0, h);
-      bottomFade.addColorStop(0, 'rgba(4,4,4,0)');
-      bottomFade.addColorStop(0.85, 'rgba(4,4,4,0.4)');
-      bottomFade.addColorStop(1, 'rgba(4,4,4,1)');
+      bottomFade.addColorStop(0, 'rgba(2,2,2,0)');
+      bottomFade.addColorStop(0.85, 'rgba(2,2,2,0.4)');
+      bottomFade.addColorStop(1, 'rgba(2,2,2,1)');
       ctx.fillStyle = bottomFade;
       ctx.fillRect(0, 0, w, h);
 
@@ -171,7 +171,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden" style={{ background: '#040404' }}>
+    <div ref={containerRef} className="relative flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden" style={{ background: '#020202' }}>
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
