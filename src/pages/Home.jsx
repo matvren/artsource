@@ -65,57 +65,76 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden" style={{ background: '#0a0a0a' }}>
+      {/* Fixed navbar */}
       <Navbar
         currentUser={currentUser}
         onOpenAuth={() => setShowAuth(true)}
         onLogout={handleLogout}
       />
 
+      {/* Full-viewport hero — no top padding needed since navbar is fixed + transparent */}
       <HeroSection searchQuery={searchQuery} onSearch={setSearchQuery} />
 
-      <main className="max-w-6xl mx-auto px-6 pb-24 space-y-16">
-        <VendorSection
-          title="WeChat"
-          vendors={filteredData.wechat}
-          type="wechat"
-          currentUser={currentUser}
-          favorites={favorites}
-          onToggleFav={toggleFavorite}
-          onOpenVendor={openVendor}
-          onOpenAuth={() => setShowAuth(true)}
-        />
-        <VendorSection
-          title="WhatsApp"
-          vendors={filteredData.whatsapp}
-          type="whatsapp"
-          currentUser={currentUser}
-          favorites={favorites}
-          onToggleFav={toggleFavorite}
-          onOpenVendor={openVendor}
-          onOpenAuth={() => setShowAuth(true)}
-        />
-        <VendorSection
-          title="Freight Forwarders"
-          vendors={filteredData.freight}
-          type="freight"
-          currentUser={currentUser}
-          favorites={favorites}
-          onToggleFav={toggleFavorite}
-          onOpenVendor={openVendor}
-          onOpenAuth={() => setShowAuth(true)}
-        />
-        <VendorSection
-          title="Paid"
-          vendors={filteredData.paid}
-          type="paid"
-          currentUser={currentUser}
-          favorites={favorites}
-          onToggleFav={toggleFavorite}
-          onOpenVendor={openVendor}
-          onOpenAuth={() => setShowAuth(true)}
-        />
-        <ContactSection />
+      {/* Vendor directory */}
+      <main id="directory" className="max-w-6xl mx-auto px-6 pb-32" style={{ paddingTop: '80px' }}>
+        {/* Section eyebrow */}
+        <div className="mb-12">
+          <p
+            className="text-[10px] font-semibold uppercase tracking-widest mb-2"
+            style={{ color: 'rgba(255,255,255,0.25)' }}
+          >
+            Vendor Directory
+          </p>
+          <div className="h-px w-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
+        </div>
+
+        <div className="space-y-16">
+          <VendorSection
+            title="WeChat"
+            vendors={filteredData.wechat}
+            type="wechat"
+            currentUser={currentUser}
+            favorites={favorites}
+            onToggleFav={toggleFavorite}
+            onOpenVendor={openVendor}
+            onOpenAuth={() => setShowAuth(true)}
+          />
+          <VendorSection
+            title="WhatsApp"
+            vendors={filteredData.whatsapp}
+            type="whatsapp"
+            currentUser={currentUser}
+            favorites={favorites}
+            onToggleFav={toggleFavorite}
+            onOpenVendor={openVendor}
+            onOpenAuth={() => setShowAuth(true)}
+          />
+          <VendorSection
+            title="Freight Forwarders"
+            vendors={filteredData.freight}
+            type="freight"
+            currentUser={currentUser}
+            favorites={favorites}
+            onToggleFav={toggleFavorite}
+            onOpenVendor={openVendor}
+            onOpenAuth={() => setShowAuth(true)}
+          />
+          <VendorSection
+            title="Paid"
+            vendors={filteredData.paid}
+            type="paid"
+            currentUser={currentUser}
+            favorites={favorites}
+            onToggleFav={toggleFavorite}
+            onOpenVendor={openVendor}
+            onOpenAuth={() => setShowAuth(true)}
+          />
+        </div>
+
+        <div className="mt-20">
+          <ContactSection />
+        </div>
       </main>
 
       {selectedVendor && (
