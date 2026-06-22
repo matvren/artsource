@@ -252,7 +252,7 @@ export default function HeroSection({ searchQuery, onSearch }) {
             onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.25)'}
             onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
           />
-          <style>{`input::placeholder { color: rgba(255,255,255,0.3); }`}</style>
+          <style>{`input::placeholder { color: rgba(255,255,255,0.3); } input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; height: 14px; width: 14px; cursor: pointer; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath fill='rgba(255,255,255,0.35)' d='M11.3.3l-4.3 4.3L2.7.3.3 2.7l4.3 4.3L.3 11.3l2.4 2.4 4.3-4.3 4.3 4.3 2.4-2.4-4.3-4.3 4.3-4.3z'/%3E%3C/svg%3E") no-repeat center; background-size: contain; } input[type="search"]::-webkit-search-cancel-button:hover { opacity: 0.7; }`}</style>
         </div>
       </div>
 
