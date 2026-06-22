@@ -154,6 +154,10 @@ export default function Home() {
         <div className="mt-20">
           <ContactSection />
         </div>
+
+        <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-center mt-24 pb-8" style={{ color: 'rgba(255,255,255,0.15)' }}>
+          &copy; racibuls &amp; artsources
+        </p>
       </main>
 
       {selectedVendor && (
